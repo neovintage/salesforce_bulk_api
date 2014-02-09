@@ -53,8 +53,9 @@ module SalesforceBulkApi
 
       response = @connection.post_xml(nil, path, @records, headers)
       response_parsed = Nokogiri::XML(response)
+      response_parsed.remove_namespaces!
 
-      @batch_ids << response_parsed['id'][0]
+      @batch_ids << response_parsed.at_xpath('//id').text
     end
 
     def add_batches
@@ -84,7 +85,8 @@ module SalesforceBulkApi
       headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
       response = @connection.post_xml(nil, path, xml, headers)
       response_parsed = Nokogiri::XML(response)
-      response_parsed['id'][0] if response_parsed['id']
+      response_parsed.remove_namespaces!
+      response_parsed.at_xpath('//id').text if response_parsed.at_xpath('//id')
     end
 
     def create_sobject(keys, r)
@@ -143,10 +145,11 @@ module SalesforceBulkApi
         state = []
         Timeout::timeout(timeout, SalesforceBulkApi::JobTimeout) do
           while true
-            if self.check_job_status['state'][0] == 'Closed'
+            if self.check_job_status.at_xpath('//state').text == 'Closed'
               @batch_ids.each do |batch_id|
                 batch_state = self.check_batch_status(batch_id)
-                if batch_state['state'][0] != "Queued" && batch_state['state'][0] != "InProgress"
+                batch_state_text = batch_state.at_xpath('//state').text
+                if !(["Queued", "InProgress"].include?(batch_state_text))
                   state << (batch_state)
                   @batch_ids.delete(batch_id)
                 end
@@ -164,7 +167,7 @@ module SalesforceBulkApi
       end
 
       state.each_with_index do |batch_state, i|
-        if batch_state['state'][0] == 'Completed' && return_result == true
+        if return_result == true && batch_state.at_xpath('//state').text == 'Completed'
           state[i].merge!({'response' => self.get_batch_result(batch_state['id'][0])})
         end
       end
