@@ -3,13 +3,14 @@ require 'bundler'
 Bundler.require()
 require "salesforce_bulk_api/version"
 require 'net/https'
-require 'xmlsimple'
+require 'yajl/json_gem'
+require 'nokogiri'
 require 'csv'
 require 'salesforce_bulk_api/job'
 require 'salesforce_bulk_api/connection'
 
 module SalesforceBulkApi
-  
+
   class Api
 
     @@SALESFORCE_API_VERSION = '23.0'
@@ -34,8 +35,8 @@ module SalesforceBulkApi
       self.do_operation('delete', sobject, records, nil, get_response, timeout, batch_size)
     end
 
-    def query(sobject, query, batch_size = 10000, timeout = 1500)
-      self.do_operation('query', sobject, query, nil, true, timeout, batch_size)
+    def query(sobject, query, batch_size = 10000, get_response = true, timeout = 1500)
+      self.do_operation('query', sobject, query, nil, get_response, timeout, batch_size)
     end
 
     #private
@@ -49,5 +50,5 @@ module SalesforceBulkApi
       response.merge!({'batches' => job.get_job_result(get_response, timeout)}) if get_response == true
       response
     end
-  end  
+  end
 end

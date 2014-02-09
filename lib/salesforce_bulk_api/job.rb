@@ -30,8 +30,9 @@ module SalesforceBulkApi
       headers = Hash['Content-Type' => 'application/xml; charset=utf-8']
 
       response = @connection.post_xml(nil, path, xml, headers)
-      response_parsed = XmlSimple.xml_in(response)
-      @job_id = response_parsed['id'][0]
+      response_parsed = Nokogiri::XML(response)
+      response_parsed.remove_namespaces!
+      @job_id = response_parsed.at_xpath('//id').text
     end
 
     def close_job()
@@ -43,7 +44,7 @@ module SalesforceBulkApi
       headers = Hash['Content-Type' => 'application/xml; charset=utf-8']
 
       response = @connection.post_xml(nil, path, xml, headers)
-      XmlSimple.xml_in(response)
+      Nokogiri::XML(response)
     end
 
     def add_query
@@ -51,7 +52,7 @@ module SalesforceBulkApi
       headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
 
       response = @connection.post_xml(nil, path, @records, headers)
-      response_parsed = XmlSimple.xml_in(response)
+      response_parsed = Nokogiri::XML(response)
 
       @batch_ids << response_parsed['id'][0]
     end
@@ -82,7 +83,7 @@ module SalesforceBulkApi
       path = "job/#{@job_id}/batch/"
       headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
       response = @connection.post_xml(nil, path, xml, headers)
-      response_parsed = XmlSimple.xml_in(response)
+      response_parsed = Nokogiri::XML(response)
       response_parsed['id'][0] if response_parsed['id']
     end
 
@@ -111,7 +112,7 @@ module SalesforceBulkApi
       response = @connection.get_request(nil, path, headers)
 
       begin
-        response_parsed = XmlSimple.xml_in(response) if response
+        response_parsed = Nokogiri::XML(response) if response
         response_parsed
       rescue StandardError => e
         puts "Error parsing XML response for #{@job_id}"
@@ -127,7 +128,7 @@ module SalesforceBulkApi
       response = @connection.get_request(nil, path, headers)
 
       begin
-        response_parsed = XmlSimple.xml_in(response) if response
+        response_parsed = Nokogiri::XML(response) if response
         response_parsed
       rescue StandardError => e
         puts "Error parsing XML response for #{@job_id}, batch #{batch_id}"
@@ -175,7 +176,7 @@ module SalesforceBulkApi
       headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
 
       response = @connection.get_request(nil, path, headers)
-      response_parsed = XmlSimple.xml_in(response)
+      response_parsed = Nokogiri::XML(response)
       results = response_parsed['result'] unless @operation == 'query'
 
       if(@operation == 'query') # The query op requires us to do another request to get the results
@@ -184,8 +185,9 @@ module SalesforceBulkApi
         headers = Hash.new
         headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
         response = @connection.get_request(nil, path, headers)
-        response_parsed = XmlSimple.xml_in(response)
-        results = response_parsed['records']
+        response_parsed = Nokogiri::XML(response)
+        response_parsed.remove_namespaces!
+        results = response_parsed.at_xpath('//records')
       end
       results
     end
