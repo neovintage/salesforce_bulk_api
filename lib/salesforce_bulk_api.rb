@@ -49,7 +49,7 @@ module SalesforceBulkApi
       operation == "query" ? job.add_query() : job.add_batches()
       response = job.close_job
       hash = Hash.from_xml(response.to_s)
-      hash.merge!({'batches' => job.get_job_result(get_batch_data, timeout)}) if get_response == true
+      hash.merge!({'batches' => Hash.from_xml(job.get_job_result(get_batch_data, timeout).to_s)}) if get_response == true
 
       hash
     end

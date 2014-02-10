@@ -66,6 +66,30 @@ require 'timeout'
       https(host).get(path, headers).body
     end
 
+    def get_stream_request(host, path, headers, identifier)
+      host    = @@INSTANCE_HOST
+      headers['X-SFDC-Session'] = @session_id
+      path = "#{@@PATH_PREFIX}#{path}"
+      filename = "/tmp/#{Time.now.to_i}_#{identifier}.xml"
+      https(host).start do |http|
+        if block_given?
+          yield(http)
+        else
+          begin
+            file = open(filename, 'wb')
+            http.request_get(path, headers) do |response|
+              response.read_body do |segment|
+                file.write(segment)
+              end
+            end
+          ensure
+            file.close
+          end
+          filename
+        end
+      end
+    end
+
     def https(host)
       req = Net::HTTP.new(host, 443)
       req.use_ssl = true

@@ -2,6 +2,8 @@ module SalesforceBulkApi
 
   class Job
 
+    attr_reader :connection
+
     def initialize(operation, sobject, records, external_field, connection)
       @operation      = operation
       @sobject        = sobject
@@ -183,25 +185,36 @@ module SalesforceBulkApi
       state
     end
 
-    def get_batch_result(batch_id)
+    def get_batch_result(batch_id, fetch_records = true)
       path = "job/#{@job_id}/batch/#{batch_id}/result"
       headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
 
       response = @connection.get_request(nil, path, headers)
       response_parsed = Nokogiri::XML(response)
-      results = response_parsed['result'] unless @operation == 'query'
+      response_parsed.remove_namespaces!
+      results = response.at_xpath('//result').text unless @operation == 'query'
 
-      if(@operation == 'query') # The query op requires us to do another request to get the results
-        result_id = response_parsed["result"][0]
+      if @operation == 'query'
+        result_id = response_parsed.at_xpath('//result').text
         path = "job/#{@job_id}/batch/#{batch_id}/result/#{result_id}"
-        headers = Hash.new
-        headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
-        response = @connection.get_request(nil, path, headers)
-        response_parsed = Nokogiri::XML(response)
-        response_parsed.remove_namespaces!
-        results = response_parsed.at_xpath('//records')
+        if fetch_records
+          headers = Hash.new
+          headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
+          response = @connection.get_request(nil, path, headers)
+          response_parsed = Nokogiri::XML(response)
+          response_parsed.remove_namespaces!
+          results = Hash.from_xml(response_parsed.at_xpath('//records'))
+        else
+          results = result_id
+        end
       end
       results
+    end
+
+    def stream_batch_result(batch_id, result_id)
+      headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
+      path = "job/#{@job_id}/batch/#{batch_id}/result/#{result_id}"
+      @connection.get_stream_request(nil, path, headers, result_id)
     end
 
   end
