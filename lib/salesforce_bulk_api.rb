@@ -13,10 +13,10 @@ module SalesforceBulkApi
 
   class Api
 
-    @@SALESFORCE_API_VERSION = '23.0'
+    SALESFORCE_API_VERSION = '23.0'
 
-    def initialize(client)
-      @connection = SalesforceBulkApi::Connection.new(@@SALESFORCE_API_VERSION,client)
+    def initialize(client, salesforce_api_version = SALESFORCE_API_VERSION)
+      @connection = SalesforceBulkApi::Connection.new(salesforce_api_version, client)
     end
 
     def upsert(sobject, records, external_field, get_response = false, send_nulls = false, no_null_list = [], batch_size = 10000, timeout = 1500)
