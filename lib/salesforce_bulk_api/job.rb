@@ -196,10 +196,10 @@ module SalesforceBulkApi
 
       if @operation == 'query'
         result_id = response_parsed.at_xpath('//result').text
-        path = "job/#{@job_id}/batch/#{batch_id}/result/#{result_id}"
         if fetch_records
           headers = Hash.new
           headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
+          path = "job/#{@job_id}/batch/#{batch_id}/result/#{result_id}"
           response = @connection.get_request(nil, path, headers)
           response_parsed = Nokogiri::XML(response)
           response_parsed.remove_namespaces!
@@ -211,10 +211,10 @@ module SalesforceBulkApi
       results
     end
 
-    def stream_batch_result(batch_id, result_id)
+    def stream_batch_result(batch_id)
       headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
-      path = "job/#{@job_id}/batch/#{batch_id}/result/#{result_id}"
-      @connection.get_stream_request(nil, path, headers, result_id)
+      path = "job/#{@job_id}/batch/#{batch_id}/result/"
+      @connection.get_stream_request(nil, path, headers, batch_id)
     end
 
   end
