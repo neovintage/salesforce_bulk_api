@@ -1,8 +1,12 @@
 module SalesforceBulkApi
 
+  # Returning hashes is not cool.  We should be using
+  # the job class to manage its own state and everything
+  #
   class Job
 
     attr_reader :connection
+    attr_accessor :results
 
     def initialize(operation, sobject, records, external_field, connection)
       @operation      = operation
