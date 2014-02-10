@@ -218,7 +218,11 @@ module SalesforceBulkApi
     def stream_batch_result(batch_id)
       headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
       path = "job/#{@job_id}/batch/#{batch_id}/result/"
-      @connection.get_stream_request(nil, path, headers, batch_id)
+      result = @connection.get_request(nil, path, headers)
+      result_doc = Nokogiri::XML(result)
+      result_doc.remove_namespaces!
+      result_id = result_doc.at_xpath('//result').text
+      @connection.get_stream_request(nil, path, headers, result_id)
     end
 
   end
