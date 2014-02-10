@@ -222,6 +222,7 @@ module SalesforceBulkApi
       result_doc = Nokogiri::XML(result)
       result_doc.remove_namespaces!
       result_id = result_doc.at_xpath('//result').text
+      path = "job/#{@job_id}/batch/#{batch_id}/result/#{result_id}"
       @connection.get_stream_request(nil, path, headers, result_id)
     end
 
