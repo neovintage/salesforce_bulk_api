@@ -114,7 +114,10 @@ module SalesforceBulkApi
       response = @connection.get_request(nil, path, headers)
 
       begin
-        response_parsed = Nokogiri::XML(response) if response
+        if response
+          response_parsed = Nokogiri::XML(response)
+          response_parsed.remove_namespaces!
+        end
         response_parsed
       rescue StandardError => e
         puts "Error parsing XML response for #{@job_id}"
@@ -130,7 +133,10 @@ module SalesforceBulkApi
       response = @connection.get_request(nil, path, headers)
 
       begin
-        response_parsed = Nokogiri::XML(response) if response
+        if response
+          response_parsed = Nokogiri::XML(response)
+          response_parsed.remove_namespaces!
+        end
         response_parsed
       rescue StandardError => e
         puts "Error parsing XML response for #{@job_id}, batch #{batch_id}"

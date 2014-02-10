@@ -8,6 +8,7 @@ require 'nokogiri'
 require 'csv'
 require 'salesforce_bulk_api/job'
 require 'salesforce_bulk_api/connection'
+require 'active_support/core_ext/hash/conversions'
 
 module SalesforceBulkApi
 
@@ -15,7 +16,7 @@ module SalesforceBulkApi
 
     SALESFORCE_API_VERSION = '23.0'
 
-    def initialize(client, salesforce_api_version = SALESFORCE_API_VERSION)
+    def initialize(client, salesforce_api_version)
       @connection = SalesforceBulkApi::Connection.new(salesforce_api_version, client)
     end
 
@@ -47,8 +48,10 @@ module SalesforceBulkApi
       job.create_job(batch_size, send_nulls, no_null_list)
       operation == "query" ? job.add_query() : job.add_batches()
       response = job.close_job
-      response.merge!({'batches' => job.get_job_result(get_batch_data, timeout)}) if get_response == true
-      response
+      hash = Hash.from_xml(response.to_s)
+      hash.merge!({'batches' => job.get_job_result(get_batch_data, timeout)}) if get_response == true
+
+      hash
     end
   end
 end

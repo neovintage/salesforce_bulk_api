@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency("yajl-ruby", ">= 0")
   s.add_dependency("nokogiri", ">= 0")
+  s.add_dependency("activesupport", ">= 4.0.0")
 
   s.add_development_dependency 'rspec'
   s.add_development_dependency('webmock', ['~> 1.13'])

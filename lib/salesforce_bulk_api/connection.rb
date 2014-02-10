@@ -8,7 +8,7 @@ require 'timeout'
     @@LOGIN_HOST = 'login.salesforce.com'
     @@INSTANCE_HOST = nil # Gets set in login()
 
-    def initialize(api_version,client)
+    def initialize(api_version, client)
       @client=client
       @session_id = nil
       @server_url = nil
