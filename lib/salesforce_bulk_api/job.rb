@@ -145,7 +145,8 @@ module SalesforceBulkApi
         state = []
         Timeout::timeout(timeout, SalesforceBulkApi::JobTimeout) do
           while true
-            if self.check_job_status.at_xpath('//state').text == 'Closed'
+            job_status_result = self.check_job_status.at_xpath('//state')
+            if job_status_result.text == 'Closed'
               @batch_ids.each do |batch_id|
                 batch_state = self.check_batch_status(batch_id)
                 batch_state_text = batch_state.at_xpath('//state').text
@@ -166,9 +167,11 @@ module SalesforceBulkApi
         raise
       end
 
-      state.each_with_index do |batch_state, i|
-        if return_result == true && batch_state.at_xpath('//state').text == 'Completed'
-          state[i].merge!({'response' => self.get_batch_result(batch_state['id'][0])})
+      if return_result == true
+        state.each_with_index do |batch_state, i|
+          if batch_state.at_xpath('//state').text == 'Completed'
+            state[i].merge!({'response' => self.get_batch_result(batch_state.at_xpath('//id').text)})
+          end
         end
       end
       state
