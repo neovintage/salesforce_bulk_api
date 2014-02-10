@@ -159,7 +159,7 @@ module SalesforceBulkApi
                 batch_state = self.check_batch_status(batch_id)
                 batch_state_text = batch_state.at_xpath('//state').text
                 if !(["Queued", "InProgress"].include?(batch_state_text))
-                  state << (batch_state)
+                  state << (Hash.from_xml(batch_state.to_s))
                   @batch_ids.delete(batch_id)
                 end
               end
